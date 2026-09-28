@@ -27,14 +27,16 @@ public class SetupController {
     @PostMapping("/seed")
     @ResponseStatus(HttpStatus.CREATED)
     public Map<String, Object> seedDefaults() {
-        Client client = clientRepository.save(Client.builder()
+        Client client = clientRepository.findByEmail("alice@example.com")
+            .orElseGet(() -> clientRepository.save(Client.builder()
                 .name("Alice")
                 .email("alice@example.com")
-                .build());
-        Freelancer freelancer = freelancerRepository.save(Freelancer.builder()
+                .build()));
+        Freelancer freelancer = freelancerRepository.findByEmail("bob@example.com")
+            .orElseGet(() -> freelancerRepository.save(Freelancer.builder()
                 .name("Bob")
                 .email("bob@example.com")
-                .build());
+                .build()));
         return Map.of("client", client, "freelancer", freelancer);
     }
 }

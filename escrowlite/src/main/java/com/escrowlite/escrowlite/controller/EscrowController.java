@@ -18,6 +18,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api")
 public class EscrowController {
@@ -32,6 +34,11 @@ public class EscrowController {
     @ResponseStatus(HttpStatus.CREATED)
     public Project createProject(@Valid @RequestBody CreateProjectRequest request) {
         return escrowService.createProject(request);
+    }
+
+    @GetMapping("/projects")
+    public List<ProjectSummaryResponse> getProjectSummaries() {
+        return escrowService.getProjectSummaries();
     }
 
     @PutMapping("/milestones/{id}/deliver")

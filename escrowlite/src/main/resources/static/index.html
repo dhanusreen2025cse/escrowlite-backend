@@ -1,0 +1,555 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0b1010">
+  <title>EscrowLite | Escrow overview</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['DM Sans', 'sans-serif'],
+            display: ['Space Grotesk', 'sans-serif']
+          }
+        }
+      }
+    };
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    :root {
+      color-scheme: dark;
+      --canvas: #0b1010;
+      --panel: rgba(19, 27, 27, .76);
+      --line: rgba(178, 207, 198, .11);
+      --muted: #91a19c;
+      --mint: #93f0c4;
+      --mint-strong: #40d99a;
+      --gold: #e9c786;
+      --coral: #f38c79;
+    }
+    * { box-sizing: border-box; }
+    body {
+      min-height: 100vh;
+      background:
+        linear-gradient(rgba(162, 199, 184, .025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(162, 199, 184, .025) 1px, transparent 1px),
+        linear-gradient(135deg, #0b1010 0%, #111919 54%, #101514 100%);
+      background-size: 48px 48px, 48px 48px, auto;
+      color: #edf4f0;
+    }
+    .glass {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      box-shadow: 0 18px 50px rgba(0, 0, 0, .18), inset 0 1px rgba(255, 255, 255, .035);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+    }
+    .soft-glow { box-shadow: 0 0 0 1px rgba(147, 240, 196, .08), 0 10px 30px rgba(64, 217, 154, .08); }
+    .mono { font-variant-numeric: tabular-nums; }
+    .thin-scroll::-webkit-scrollbar { height: 8px; width: 8px; }
+    .thin-scroll::-webkit-scrollbar-thumb { background: #344441; border-radius: 8px; }
+    .modal-backdrop { background: rgba(3, 8, 8, .76); backdrop-filter: blur(8px); }
+    .status-dot { box-shadow: 0 0 0 4px rgba(64, 217, 154, .1); }
+    .row-action { transition: color .18s ease, background .18s ease, border-color .18s ease, transform .18s ease; }
+    .row-action:hover { transform: translateY(-1px); }
+    .rise { animation: rise-in .48s cubic-bezier(.2,.7,.2,1) both; }
+    .delay-1 { animation-delay: 70ms; }
+    .delay-2 { animation-delay: 130ms; }
+    .delay-3 { animation-delay: 190ms; }
+    .delay-4 { animation-delay: 250ms; }
+    @keyframes rise-in { from { opacity: 0; transform: translateY(9px); } to { opacity: 1; transform: translateY(0); } }
+    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; scroll-behavior: auto !important; } }
+  </style>
+</head>
+<body class="font-sans antialiased">
+  <div class="mx-auto min-h-screen max-w-[1480px] px-4 pb-12 sm:px-7 lg:px-10">
+    <header class="flex h-[76px] items-center justify-between border-b border-white/[.07]">
+      <a href="#overview" class="group flex items-center gap-3" aria-label="EscrowLite home">
+        <span class="grid size-10 place-items-center rounded-[13px] border border-emerald-200/20 bg-emerald-300/[.09] text-emerald-200 soft-glow">
+          <i data-lucide="shield-check" class="size-[21px]"></i>
+        </span>
+        <span class="font-display text-[17px] font-semibold tracking-[0] text-white">escrow<span class="text-emerald-300">lite</span></span>
+      </a>
+      <div class="flex items-center gap-3 sm:gap-5">
+        <div class="hidden items-center gap-2 rounded-full border border-emerald-200/10 bg-emerald-300/[.06] px-3 py-1.5 text-xs font-medium text-emerald-100 sm:flex">
+          <span class="status-dot size-1.5 rounded-full bg-emerald-300"></span>
+          Protected workspace
+        </div>
+        <button id="refreshButton" class="grid size-9 place-items-center rounded-xl border border-white/[.09] text-[#9eada7] transition hover:border-white/20 hover:text-white" title="Refresh agreements" aria-label="Refresh agreements">
+          <i data-lucide="refresh-cw" class="size-4"></i>
+        </button>
+        <div class="flex items-center gap-2.5 border-l border-white/[.09] pl-3 sm:pl-5">
+          <div class="grid size-9 place-items-center rounded-full border border-emerald-100/20 bg-[#36594b] font-display text-xs font-semibold text-emerald-50">OL</div>
+          <div class="hidden sm:block">
+            <p class="text-xs font-semibold text-[#e6efea]">Olivia Lane</p>
+            <p class="mt-0.5 text-[11px] text-[#84938e]">Workspace owner</p>
+          </div>
+          <i data-lucide="chevron-down" class="hidden size-3.5 text-[#71817b] sm:block"></i>
+        </div>
+      </div>
+    </header>
+
+    <main id="overview" class="pt-9 sm:pt-11">
+      <section class="flex flex-col justify-between gap-5 sm:flex-row sm:items-end">
+        <div class="rise">
+          <div class="mb-3 flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[.16em] text-[#91a49b]">
+            <span class="size-1.5 rounded-full bg-[#93f0c4]"></span>
+            Escrow operations
+            <span class="text-[#586762]">/</span>
+            <span id="todayLabel" class="font-medium tracking-[.08em] text-[#74837d]"></span>
+          </div>
+          <h1 class="font-display text-[32px] font-medium leading-tight text-[#f0f5f2] sm:text-[38px]">Escrow overview</h1>
+          <p class="mt-2 max-w-xl text-sm text-[#96a49f]">Track agreements, review deliverables, and move funds with confidence.</p>
+        </div>
+        <button id="openCreate" class="row-action inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-[#a3f3ce] px-4 text-[13px] font-bold text-[#0d2118] shadow-[0_8px_26px_rgba(92,223,165,.14)] hover:bg-[#b8f8da]">
+          <i data-lucide="plus" class="size-4"></i>
+          Create new agreement
+        </button>
+      </section>
+
+      <section aria-label="Escrow summary" class="mt-8 grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <article class="glass rise rounded-2xl p-5 delay-1">
+          <div class="flex items-start justify-between">
+            <div><p class="text-[12px] font-medium text-[#a2b0aa]">Total escrow value</p><p id="statTotal" class="mono mt-4 font-display text-[27px] font-semibold tracking-[0] text-white">$0.00</p></div>
+            <span class="grid size-9 place-items-center rounded-xl border border-emerald-200/10 bg-emerald-300/[.08] text-emerald-200"><i data-lucide="landmark" class="size-[17px]"></i></span>
+          </div>
+          <p class="mt-2 text-[11px] text-[#71817b]">Across all active agreements</p>
+        </article>
+        <article class="glass rise rounded-2xl p-5 delay-2">
+          <div class="flex items-start justify-between">
+            <div><p class="text-[12px] font-medium text-[#a2b0aa]">Active agreements</p><p id="statActive" class="mono mt-4 font-display text-[27px] font-semibold tracking-[0] text-white">0</p></div>
+            <span class="grid size-9 place-items-center rounded-xl border border-sky-200/10 bg-sky-300/[.08] text-sky-200"><i data-lucide="file-check-2" class="size-[17px]"></i></span>
+          </div>
+          <p class="mt-2 text-[11px] text-[#71817b]">With funds still in escrow</p>
+        </article>
+        <article class="glass rise rounded-2xl p-5 delay-3">
+          <div class="flex items-start justify-between">
+            <div><p class="text-[12px] font-medium text-[#a2b0aa]">Pending approvals</p><p id="statPending" class="mono mt-4 font-display text-[27px] font-semibold tracking-[0] text-white">0</p></div>
+            <span class="grid size-9 place-items-center rounded-xl border border-amber-200/10 bg-amber-300/[.08] text-amber-200"><i data-lucide="hourglass" class="size-[17px]"></i></span>
+          </div>
+          <p class="mt-2 text-[11px] text-[#71817b]">Deliverables awaiting your review</p>
+        </article>
+        <article class="glass rise rounded-2xl p-5 delay-4">
+          <div class="flex items-start justify-between">
+            <div><p class="text-[12px] font-medium text-[#a2b0aa]">Completed transfers</p><p id="statReleased" class="mono mt-4 font-display text-[27px] font-semibold tracking-[0] text-white">0</p></div>
+            <span class="grid size-9 place-items-center rounded-xl border border-orange-200/10 bg-orange-300/[.08] text-orange-200"><i data-lucide="circle-dollar-sign" class="size-[17px]"></i></span>
+          </div>
+          <p class="mt-2 text-[11px] text-[#71817b]">Milestone payments released</p>
+        </article>
+      </section>
+
+      <section class="glass mt-7 overflow-hidden rounded-2xl rise delay-2" aria-labelledby="agreementsHeading">
+        <div class="flex flex-col gap-4 border-b border-white/[.07] px-5 py-5 sm:px-6 lg:flex-row lg:items-center lg:justify-between">
+          <div>
+            <div class="flex items-center gap-2.5">
+              <h2 id="agreementsHeading" class="font-display text-[17px] font-semibold tracking-[0] text-[#eff5f1]">Escrow agreements</h2>
+              <span id="agreementCount" class="rounded-full border border-white/[.08] bg-white/[.04] px-2 py-0.5 text-[10px] font-semibold text-[#a2b1ab]">0</span>
+            </div>
+            <p class="mt-1 text-xs text-[#7f8e88]">Milestone-level activity across your projects</p>
+          </div>
+          <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
+            <label class="relative block sm:w-[230px]">
+              <i data-lucide="search" class="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-[#71817b]"></i>
+              <input id="searchInput" type="search" placeholder="Search agreements" class="h-10 w-full rounded-xl border border-white/[.09] bg-[#0c1212]/70 pl-9 pr-3 text-xs text-white outline-none placeholder:text-[#6d7c76] focus:border-emerald-200/40">
+            </label>
+            <div class="flex items-center gap-1 rounded-xl border border-white/[.08] bg-[#0c1212]/70 p-1" role="group" aria-label="Filter agreements">
+              <button class="filter-button rounded-lg bg-white/[.09] px-3 py-1.5 text-[11px] font-semibold text-white" data-filter="all">All</button>
+              <button class="filter-button rounded-lg px-3 py-1.5 text-[11px] font-semibold text-[#84938d] hover:text-white" data-filter="pending">Pending</button>
+              <button class="filter-button rounded-lg px-3 py-1.5 text-[11px] font-semibold text-[#84938d] hover:text-white" data-filter="disputed">Disputed</button>
+              <button class="filter-button rounded-lg px-3 py-1.5 text-[11px] font-semibold text-[#84938d] hover:text-white" data-filter="released">Released</button>
+            </div>
+          </div>
+        </div>
+        <div class="thin-scroll overflow-x-auto">
+          <table class="w-full min-w-[890px] border-collapse text-left">
+            <thead>
+              <tr class="border-b border-white/[.06] text-[10px] font-semibold uppercase tracking-[.12em] text-[#72817b]">
+                <th class="px-6 py-3.5">Agreement</th>
+                <th class="px-5 py-3.5">People</th>
+                <th class="px-5 py-3.5">Milestone value</th>
+                <th class="px-5 py-3.5">Status</th>
+                <th class="px-6 py-3.5 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="agreementRows" class="divide-y divide-white/[.055]">
+              <tr><td colspan="5" class="px-6 py-16 text-center text-sm text-[#81908a]">Loading agreements…</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="flex flex-col justify-between gap-2 border-t border-white/[.06] px-5 py-3.5 text-[11px] text-[#71817b] sm:flex-row sm:items-center sm:px-6">
+          <span id="tableRange">Showing 0 agreements</span>
+          <span class="inline-flex items-center gap-1.5"><i data-lucide="lock-keyhole" class="size-3.5 text-[#87dcb5]"></i> Funds remain protected until release</span>
+        </div>
+      </section>
+      <div id="pageError" class="mt-4 hidden rounded-xl border border-rose-300/20 bg-rose-300/[.08] px-4 py-3 text-sm text-rose-100" role="alert"></div>
+    </main>
+  </div>
+
+  <div id="createModal" class="modal-backdrop fixed inset-0 z-50 hidden items-center justify-center overflow-y-auto p-4" role="dialog" aria-modal="true" aria-labelledby="createHeading">
+    <section class="glass my-auto w-full max-w-[660px] rounded-2xl border-white/[.13] p-5 shadow-2xl sm:p-7">
+      <div class="flex items-start justify-between gap-4">
+        <div><p class="text-[10px] font-bold uppercase tracking-[.16em] text-emerald-200">New agreement</p><h2 id="createHeading" class="mt-1 font-display text-2xl font-semibold tracking-[0] text-white">Create escrow</h2><p class="mt-1 text-xs text-[#94a39d]">Set the agreed value and split it across milestones.</p></div>
+        <button class="close-modal grid size-9 place-items-center rounded-lg border border-white/[.09] text-[#9aa9a3] hover:bg-white/[.06] hover:text-white" aria-label="Close dialog"><i data-lucide="x" class="size-4"></i></button>
+      </div>
+      <form id="createForm" class="mt-6 space-y-4">
+        <div class="grid gap-3 sm:grid-cols-2">
+          <label class="block text-xs font-medium text-[#b9c5bf]">Agreement title<input name="title" required maxlength="120" class="form-field mt-1.5" placeholder="Website redesign"></label>
+          <label class="block text-xs font-medium text-[#b9c5bf]">Total agreed amount<input name="totalAmount" required type="number" min="0.01" step="0.01" class="form-field mono mt-1.5" placeholder="4800.00"></label>
+        </div>
+        <label class="block text-xs font-medium text-[#b9c5bf]">Description<textarea name="description" required maxlength="2000" rows="2" class="form-field mt-1.5 resize-y" placeholder="What will be delivered under this agreement?"></textarea></label>
+        <div class="grid gap-3 sm:grid-cols-[1fr_1fr_auto] sm:items-end">
+          <label class="block text-xs font-medium text-[#b9c5bf]">Client ID<input id="clientId" name="clientId" required type="number" min="1" class="form-field mono mt-1.5" placeholder="Seed a demo account"></label>
+          <label class="block text-xs font-medium text-[#b9c5bf]">Freelancer ID<input id="freelancerId" name="freelancerId" required type="number" min="1" class="form-field mono mt-1.5" placeholder="Seed a demo account"></label>
+          <button id="seedButton" type="button" class="row-action inline-flex h-[39px] items-center justify-center gap-2 rounded-lg border border-emerald-200/20 bg-emerald-300/[.07] px-3 text-[11px] font-semibold text-emerald-100 hover:bg-emerald-300/[.13]"><i data-lucide="users-round" class="size-3.5"></i>Load demo IDs</button>
+        </div>
+        <div class="rounded-xl border border-white/[.08] bg-black/10 p-3.5">
+          <div class="mb-3 flex items-center justify-between gap-3">
+            <div><p class="text-xs font-semibold text-[#e5eee9]">Milestones</p><p class="mt-0.5 text-[10px] text-[#7e8d87]">Amounts must add up to the total agreement value.</p></div>
+            <button id="addMilestone" type="button" class="row-action inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-[11px] font-semibold text-emerald-200 hover:bg-emerald-300/[.08]"><i data-lucide="plus" class="size-3.5"></i>Add milestone</button>
+          </div>
+          <div id="milestoneFields" class="space-y-2"></div>
+          <div class="mt-3 flex items-center justify-between border-t border-white/[.07] pt-3 text-[11px]"><span class="text-[#82918b]">Milestone total</span><span id="milestoneTotal" class="mono font-semibold text-[#d5e2db]">$0.00</span></div>
+        </div>
+        <p id="createError" class="hidden rounded-lg border border-rose-300/20 bg-rose-300/[.07] px-3 py-2 text-xs text-rose-100" role="alert"></p>
+        <div class="flex flex-col-reverse justify-end gap-2 border-t border-white/[.07] pt-4 sm:flex-row">
+          <button type="button" class="close-modal h-10 rounded-lg border border-white/[.1] px-4 text-xs font-semibold text-[#b0bcb6] hover:bg-white/[.05]">Cancel</button>
+          <button id="submitProject" type="submit" class="row-action inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-[#a3f3ce] px-4 text-xs font-bold text-[#0d2118] hover:bg-[#b8f8da]"><i data-lucide="shield-plus" class="size-4"></i>Create agreement</button>
+        </div>
+      </form>
+    </section>
+  </div>
+
+  <div id="reworkModal" class="modal-backdrop fixed inset-0 z-50 hidden items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="reworkHeading">
+    <section class="glass w-full max-w-[440px] rounded-2xl border-white/[.13] p-6 shadow-2xl">
+      <div class="flex items-start justify-between"><div><p class="text-[10px] font-bold uppercase tracking-[.16em] text-amber-200">Milestone feedback</p><h2 id="reworkHeading" class="mt-1 font-display text-xl font-semibold tracking-[0]">Request changes</h2></div><button class="close-rework grid size-8 place-items-center rounded-lg text-[#9aa9a3] hover:bg-white/[.06]" aria-label="Close dialog"><i data-lucide="x" class="size-4"></i></button></div>
+      <form id="reworkForm" class="mt-5"><label class="block text-xs font-medium text-[#c0cbc5]">Notes for the freelancer<textarea id="reworkNotes" required maxlength="2000" rows="4" class="form-field mt-2 resize-y" placeholder="Describe what needs another pass…"></textarea></label><p id="reworkError" class="mt-2 hidden text-xs text-rose-200" role="alert"></p><div class="mt-5 flex justify-end gap-2"><button type="button" class="close-rework h-9 rounded-lg border border-white/[.1] px-3 text-xs font-semibold text-[#b0bcb6]">Cancel</button><button type="submit" class="row-action inline-flex h-9 items-center gap-2 rounded-lg bg-[#f0c77e] px-3.5 text-xs font-bold text-[#261b0c] hover:bg-[#f5d695]"><i data-lucide="message-square-warning" class="size-3.5"></i>Send feedback</button></div></form>
+    </section>
+  </div>
+
+  <div id="toast" class="pointer-events-none fixed bottom-5 right-5 z-[60] hidden max-w-sm rounded-xl border border-emerald-200/20 bg-[#17241f] px-4 py-3 text-sm text-emerald-50 shadow-xl" role="status"></div>
+  <style>
+    .form-field { display:block; width:100%; border:1px solid rgba(178,207,198,.12); border-radius:9px; background:rgba(7,13,13,.48); padding:10px 11px; color:#f1f6f3; font-size:12px; outline:none; }
+    .form-field::placeholder { color:#62716b; }
+    .form-field:focus { border-color:rgba(147,240,196,.42); box-shadow:0 0 0 3px rgba(147,240,196,.07); }
+    .milestone-row { display:grid; grid-template-columns:minmax(0,1fr) minmax(105px,.35fr) 30px; gap:8px; }
+  </style>
+  <script>
+    const currency = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' });
+    const elements = {
+      rows: document.querySelector('#agreementRows'),
+      pageError: document.querySelector('#pageError'),
+      count: document.querySelector('#agreementCount'),
+      range: document.querySelector('#tableRange'),
+      search: document.querySelector('#searchInput'),
+      createModal: document.querySelector('#createModal'),
+      reworkModal: document.querySelector('#reworkModal'),
+      milestoneFields: document.querySelector('#milestoneFields'),
+      createForm: document.querySelector('#createForm'),
+      toast: document.querySelector('#toast')
+    };
+    let projects = [];
+    let activeFilter = 'all';
+    let reworkMilestoneId = null;
+    let toastTimer;
+
+    document.querySelector('#todayLabel').textContent = new Intl.DateTimeFormat('en-US', { month: 'long', day: 'numeric', year: 'numeric' }).format(new Date());
+
+    async function api(path, options = {}) {
+      const response = await fetch(path, {
+        ...options,
+        headers: { 'Content-Type': 'application/json', ...(options.headers || {}) }
+      });
+      const body = response.status === 204 ? null : await response.json().catch(() => null);
+      if (!response.ok) {
+        const validation = body?.fieldErrors ? Object.values(body.fieldErrors).join(' ') : '';
+        throw new Error([body?.message, validation].filter(Boolean).join(': ') || `Request failed (${response.status})`);
+      }
+      return body;
+    }
+
+    function esc(value) {
+      return String(value ?? '').replace(/[&<>"']/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[character]);
+    }
+
+    function money(value) {
+      return currency.format(Number(value || 0));
+    }
+
+    function flattenMilestones() {
+      return projects.flatMap(project => (project.milestones || []).map(milestone => ({ ...milestone, project })));
+    }
+
+    function setStats() {
+      const milestones = flattenMilestones();
+      const total = projects.reduce((sum, project) => sum + Number(project.totalAgreedAmount || 0), 0);
+      const active = projects.filter(project => Number(project.remainingEscrowBalance || 0) > 0).length;
+      const pending = milestones.filter(milestone => milestone.status === 'DELIVERED').length;
+      const released = milestones.filter(milestone => milestone.status === 'RELEASED').length;
+      document.querySelector('#statTotal').textContent = money(total);
+      document.querySelector('#statActive').textContent = active;
+      document.querySelector('#statPending').textContent = pending;
+      document.querySelector('#statReleased').textContent = released;
+    }
+
+    function statusInfo(status) {
+      const states = {
+        PENDING: { text: 'PENDING', css: 'border-white/10 bg-white/[.045] text-[#abb8b2]', dot: 'bg-[#9ca9a3]' },
+        DELIVERED: { text: 'IN REVIEW', css: 'border-amber-200/15 bg-amber-200/[.07] text-amber-100', dot: 'bg-amber-300' },
+        REWORK_REQUESTED: { text: 'DISPUTED', css: 'border-rose-200/15 bg-rose-200/[.07] text-rose-100', dot: 'bg-rose-300' },
+        APPROVED: { text: 'APPROVED', css: 'border-sky-200/15 bg-sky-200/[.07] text-sky-100', dot: 'bg-sky-300' },
+        RELEASED: { text: 'RELEASED', css: 'border-emerald-200/15 bg-emerald-200/[.07] text-emerald-100', dot: 'bg-emerald-300' }
+      };
+      return states[status] || states.PENDING;
+    }
+
+    function personMark(name) {
+      const initials = String(name || '?').trim().split(/\s+/).map(part => part[0]).slice(0, 2).join('').toUpperCase();
+      return `<span class="grid size-7 shrink-0 place-items-center rounded-full border border-white/[.09] bg-[#273834] text-[9px] font-bold text-[#c4e9d5]">${esc(initials)}</span>`;
+    }
+
+    function actionButtons(item) {
+      const id = Number(item.milestoneId ?? item.id);
+      if (item.status === 'PENDING' || item.status === 'REWORK_REQUESTED') {
+        return `<button class="row-action inline-flex items-center gap-1.5 rounded-lg border border-white/[.1] px-2.5 py-1.5 text-[10px] font-semibold text-[#b9c6bf] hover:border-emerald-200/25 hover:bg-emerald-200/[.06] hover:text-emerald-100" data-action="deliver" data-id="${id}"><i data-lucide="send" class="size-3"></i>Mark delivered</button>`;
+      }
+      if (item.status === 'DELIVERED') {
+        return `<div class="flex justify-end gap-1.5"><button class="row-action inline-flex items-center gap-1 rounded-lg bg-[#a3f3ce] px-2.5 py-1.5 text-[10px] font-bold text-[#0d2118] hover:bg-[#b8f8da]" data-action="approve" data-id="${id}"><i data-lucide="check" class="size-3"></i>Approve</button><button class="row-action inline-flex items-center gap-1 rounded-lg border border-rose-200/15 px-2.5 py-1.5 text-[10px] font-semibold text-rose-100 hover:bg-rose-200/[.07]" data-action="dispute" data-id="${id}"><i data-lucide="message-square-warning" class="size-3"></i>Dispute</button></div>`;
+      }
+      if (item.status === 'APPROVED') {
+        return `<button class="row-action inline-flex items-center gap-1.5 rounded-lg bg-[#a3f3ce] px-2.5 py-1.5 text-[10px] font-bold text-[#0d2118] hover:bg-[#b8f8da]" data-action="release" data-id="${id}"><i data-lucide="arrow-up-right" class="size-3"></i>Release funds</button>`;
+      }
+      return '<span class="pr-2 text-[10px] text-[#687771]">No action needed</span>';
+    }
+
+    function renderRows() {
+      const query = elements.search.value.trim().toLowerCase();
+      let items = flattenMilestones();
+      if (activeFilter === 'pending') items = items.filter(item => ['PENDING', 'DELIVERED', 'APPROVED'].includes(item.status));
+      if (activeFilter === 'disputed') items = items.filter(item => item.status === 'REWORK_REQUESTED');
+      if (activeFilter === 'released') items = items.filter(item => item.status === 'RELEASED');
+      if (query) items = items.filter(item => [item.project.title, item.title, item.project.clientName, item.project.freelancerName].some(value => String(value || '').toLowerCase().includes(query)));
+      elements.count.textContent = items.length;
+      elements.range.textContent = `Showing ${items.length} ${items.length === 1 ? 'agreement' : 'agreements'}`;
+      if (!items.length) {
+        elements.rows.innerHTML = `<tr><td colspan="5" class="px-6 py-16 text-center"><div class="mx-auto grid size-11 place-items-center rounded-2xl border border-white/[.08] bg-white/[.03] text-[#82938b]"><i data-lucide="files" class="size-5"></i></div><p class="mt-3 text-sm font-semibold text-[#d7e2dc]">${projects.length ? 'No matching milestones' : 'Nothing in escrow yet'}</p><p class="mt-1 text-xs text-[#778780]">${projects.length ? 'Try another search or status filter.' : 'Create an agreement to start protecting a payment.'}</p></td></tr>`;
+        if (window.lucide) lucide.createIcons();
+        return;
+      }
+      elements.rows.innerHTML = items.map(item => {
+        const state = statusInfo(item.status);
+        const project = item.project;
+        return `<tr class="group transition hover:bg-white/[.018]">
+          <td class="px-6 py-4"><div class="flex items-center gap-3"><span class="grid size-9 shrink-0 place-items-center rounded-xl border border-emerald-100/[.08] bg-emerald-200/[.055] text-emerald-100"><i data-lucide="layers-2" class="size-4"></i></span><div class="min-w-0"><p class="max-w-[260px] truncate text-xs font-semibold text-[#e4eee8]">${esc(project.title)}</p><p class="mt-1 max-w-[260px] truncate text-[10px] text-[#798881]">${esc(item.title)} <span class="px-1 text-[#4e5d56]">·</span> Project #${esc(project.projectId)}</p></div></div></td>
+          <td class="px-5 py-4"><div class="flex items-center gap-2">${personMark(project.clientName)}<div class="min-w-0"><p class="max-w-[130px] truncate text-[11px] font-medium text-[#d0dbd5]">${esc(project.clientName)}</p><p class="mt-0.5 max-w-[130px] truncate text-[10px] text-[#788781]">with ${esc(project.freelancerName)}</p></div></div></td>
+          <td class="mono whitespace-nowrap px-5 py-4 text-xs font-semibold text-[#e5eee8]">${money(item.amount)}<p class="mt-1 text-[10px] font-normal text-[#72817b]">of ${money(project.totalAgreedAmount)}</p></td>
+          <td class="px-5 py-4"><span class="inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[9px] font-bold tracking-[.07em] ${state.css}"><span class="size-1.5 rounded-full ${state.dot}"></span>${state.text}</span></td>
+          <td class="px-6 py-4 text-right"><div class="flex justify-end">${actionButtons(item)}</div></td>
+        </tr>`;
+      }).join('');
+      if (window.lucide) lucide.createIcons();
+    }
+
+    async function loadProjects() {
+      elements.pageError.classList.add('hidden');
+      elements.rows.innerHTML = '<tr><td colspan="5" class="px-6 py-16 text-center text-sm text-[#81908a]">Loading agreements…</td></tr>';
+      try {
+        projects = await api('/api/projects') || [];
+        setStats();
+        renderRows();
+      } catch (error) {
+        projects = [];
+        setStats();
+        renderRows();
+        elements.pageError.textContent = `Could not load escrow agreements. ${error.message}`;
+        elements.pageError.classList.remove('hidden');
+      }
+    }
+
+    function showToast(message) {
+      elements.toast.textContent = message;
+      elements.toast.classList.remove('hidden');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => elements.toast.classList.add('hidden'), 3200);
+    }
+
+    function openModal(modal) {
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+      document.body.classList.add('overflow-hidden');
+      const focusable = modal.querySelector('input, textarea, button');
+      if (focusable) focusable.focus();
+    }
+
+    function closeModal(modal) {
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+      if (elements.createModal.classList.contains('hidden') && elements.reworkModal.classList.contains('hidden')) document.body.classList.remove('overflow-hidden');
+    }
+
+    function addMilestoneRow(title = '', amount = '') {
+      const row = document.createElement('div');
+      row.className = 'milestone-row';
+      row.innerHTML = `<input required maxlength="120" name="milestoneTitle" aria-label="Milestone title" class="form-field" placeholder="Milestone title" value="${esc(title)}"><input required type="number" min="0.01" step="0.01" name="milestoneAmount" aria-label="Milestone amount" class="form-field mono" placeholder="Amount" value="${esc(amount)}"><button type="button" class="remove-milestone grid size-[38px] place-items-center rounded-lg border border-white/[.08] text-[#85948d] hover:border-rose-200/20 hover:text-rose-200" aria-label="Remove milestone"><i data-lucide="minus" class="size-3.5"></i></button>`;
+      elements.milestoneFields.append(row);
+      row.querySelectorAll('input').forEach(input => input.addEventListener('input', updateMilestoneTotal));
+      row.querySelector('.remove-milestone').addEventListener('click', () => {
+        if (elements.milestoneFields.children.length > 1) row.remove();
+        updateMilestoneTotal();
+      });
+      if (window.lucide) lucide.createIcons();
+      updateMilestoneTotal();
+    }
+
+    function updateMilestoneTotal() {
+      const cents = [...elements.milestoneFields.querySelectorAll('[name="milestoneAmount"]')].reduce((sum, input) => sum + Math.round(Number(input.value || 0) * 100), 0);
+      document.querySelector('#milestoneTotal').textContent = money(cents / 100);
+    }
+
+    document.querySelector('#openCreate').addEventListener('click', () => openModal(elements.createModal));
+    document.querySelectorAll('.close-modal').forEach(button => button.addEventListener('click', () => closeModal(elements.createModal)));
+    document.querySelectorAll('.close-rework').forEach(button => button.addEventListener('click', () => closeModal(elements.reworkModal)));
+    document.querySelector('#refreshButton').addEventListener('click', loadProjects);
+    document.querySelector('#searchInput').addEventListener('input', renderRows);
+    document.querySelectorAll('.filter-button').forEach(button => button.addEventListener('click', () => {
+      activeFilter = button.dataset.filter;
+      document.querySelectorAll('.filter-button').forEach(candidate => {
+        candidate.classList.toggle('bg-white/[.09]', candidate === button);
+        candidate.classList.toggle('text-white', candidate === button);
+        candidate.classList.toggle('text-[#84938d]', candidate !== button);
+      });
+      renderRows();
+    }));
+    document.querySelector('#addMilestone').addEventListener('click', () => addMilestoneRow());
+    document.querySelector('[name="totalAmount"]').addEventListener('input', updateMilestoneTotal);
+    addMilestoneRow();
+
+    document.querySelector('#seedButton').addEventListener('click', async event => {
+      const button = event.currentTarget;
+      button.disabled = true;
+      try {
+        const result = await api('/api/setup/seed', { method: 'POST' });
+        document.querySelector('#clientId').value = result.client.id;
+        document.querySelector('#freelancerId').value = result.freelancer.id;
+        showToast(`Demo IDs loaded: ${result.client.name} and ${result.freelancer.name}`);
+      } catch (error) {
+        document.querySelector('#createError').textContent = error.message;
+        document.querySelector('#createError').classList.remove('hidden');
+      } finally {
+        button.disabled = false;
+      }
+    });
+
+    elements.createForm.addEventListener('submit', async event => {
+      event.preventDefault();
+      const form = event.currentTarget;
+      const errorBox = document.querySelector('#createError');
+      const submit = document.querySelector('#submitProject');
+      errorBox.classList.add('hidden');
+      const formData = new FormData(form);
+      const total = Number(formData.get('totalAmount'));
+      const milestones = [...elements.milestoneFields.querySelectorAll('.milestone-row')].map(row => ({
+        title: row.querySelector('[name="milestoneTitle"]').value.trim(),
+        amount: Number(row.querySelector('[name="milestoneAmount"]').value)
+      }));
+      const milestoneCents = milestones.reduce((sum, item) => sum + Math.round(item.amount * 100), 0);
+      if (milestoneCents !== Math.round(total * 100)) {
+        errorBox.textContent = 'Milestone amounts must add up exactly to the total agreed amount.';
+        errorBox.classList.remove('hidden');
+        return;
+      }
+      const payload = {
+        title: String(formData.get('title')).trim(),
+        description: String(formData.get('description')).trim(),
+        totalAmount: total,
+        clientId: Number(formData.get('clientId')),
+        freelancerId: Number(formData.get('freelancerId')),
+        milestones
+      };
+      submit.disabled = true;
+      submit.innerHTML = '<i data-lucide="loader-circle" class="size-4 animate-spin"></i>Creating…';
+      try {
+        await api('/api/projects', { method: 'POST', body: JSON.stringify(payload) });
+        closeModal(elements.createModal);
+        form.reset();
+        elements.milestoneFields.innerHTML = '';
+        addMilestoneRow();
+        showToast('Escrow agreement created. Funds are protected.');
+        await loadProjects();
+      } catch (error) {
+        errorBox.textContent = error.message;
+        errorBox.classList.remove('hidden');
+      } finally {
+        submit.disabled = false;
+        submit.innerHTML = '<i data-lucide="shield-plus" class="size-4"></i>Create agreement';
+        if (window.lucide) lucide.createIcons();
+      }
+    });
+
+    elements.rows.addEventListener('click', async event => {
+      const button = event.target.closest('[data-action]');
+      if (!button) return;
+      const { action, id } = button.dataset;
+      if (action === 'dispute') {
+        reworkMilestoneId = id;
+        document.querySelector('#reworkNotes').value = '';
+        document.querySelector('#reworkError').classList.add('hidden');
+        openModal(elements.reworkModal);
+        return;
+      }
+      const routes = {
+        deliver: ['PUT', `/api/milestones/${id}/deliver`],
+        approve: ['PUT', `/api/milestones/${id}/approve`],
+        release: ['POST', `/api/milestones/${id}/release`]
+      };
+      const [method, path] = routes[action];
+      button.disabled = true;
+      try {
+        await api(path, { method });
+        showToast(action === 'release' ? 'Milestone funds released successfully.' : `Milestone ${action === 'deliver' ? 'marked delivered' : 'approved'}.`);
+        await loadProjects();
+      } catch (error) {
+        elements.pageError.textContent = error.message;
+        elements.pageError.classList.remove('hidden');
+      }
+    });
+
+    document.querySelector('#reworkForm').addEventListener('submit', async event => {
+      event.preventDefault();
+      const error = document.querySelector('#reworkError');
+      error.classList.add('hidden');
+      try {
+        await api(`/api/milestones/${reworkMilestoneId}/rework`, {
+          method: 'PUT',
+          body: JSON.stringify({ notes: document.querySelector('#reworkNotes').value.trim() })
+        });
+        closeModal(elements.reworkModal);
+        showToast('Feedback sent. The milestone is marked disputed.');
+        await loadProjects();
+      } catch (requestError) {
+        error.textContent = requestError.message;
+        error.classList.remove('hidden');
+      }
+    });
+
+    [elements.createModal, elements.reworkModal].forEach(modal => modal.addEventListener('click', event => {
+      if (event.target === modal) closeModal(modal);
+    }));
+    document.addEventListener('keydown', event => {
+      if (event.key === 'Escape') {
+        closeModal(elements.createModal);
+        closeModal(elements.reworkModal);
+      }
+    });
+
+    if (window.lucide) lucide.createIcons();
+    loadProjects();
+  </script>
+</body>
+</html>

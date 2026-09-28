@@ -142,6 +142,18 @@ public class EscrowService {
     public ProjectSummaryResponse getProjectSummary(Long projectId) {
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new ResourceNotFoundException("Project not found with id: " + projectId));
+                return toSummary(project);
+        }
+
+        @Transactional(readOnly = true)
+        public List<ProjectSummaryResponse> getProjectSummaries() {
+                return projectRepository.findAll().stream()
+                                .map(this::toSummary)
+                                .toList();
+        }
+
+        private ProjectSummaryResponse toSummary(Project project) {
+                Long projectId = project.getId();
         BigDecimal totalReleasedAmount = releaseRepository.findTotalReleasedAmountByProjectId(projectId);
         if (totalReleasedAmount == null) {
             totalReleasedAmount = BigDecimal.ZERO;
