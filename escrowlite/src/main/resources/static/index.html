@@ -288,7 +288,7 @@
 
     function setStats() {
       const milestones = flattenMilestones();
-      const total = projects.reduce((sum, project) => sum + Number(project.totalAgreedAmount || 0), 0);
+      const total = projects.reduce((sum, project) => sum + Number(project.remainingEscrowBalance || 0), 0);
       const active = projects.filter(project => Number(project.remainingEscrowBalance || 0) > 0).length;
       const pending = milestones.filter(milestone => milestone.status === 'DELIVERED').length;
       const released = milestones.filter(milestone => milestone.status === 'RELEASED').length;
